@@ -51,13 +51,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        Timestamp date = Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
-
-        int randomPIN = (int)(Math.random()*9000)+1000;
-        User user = userService.findByUsername(request.getParameter("username"));
-        user.setOtp(randomPIN);
-        user.setOtpTime(date);
-        user = userService.save(user);
 
         String userName = request.getParameter("username");
         String password = request.getParameter("password");
