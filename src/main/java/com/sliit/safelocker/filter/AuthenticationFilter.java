@@ -3,6 +3,8 @@ package com.sliit.safelocker.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sliit.safelocker.authentication.SafeLockerAuthenticationProvider;
 import com.sliit.safelocker.model.SecurityUser;
+import com.sliit.safelocker.model.User;
+import com.sliit.safelocker.service.UserService;
 import com.sliit.safelocker.util.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,14 +33,17 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     @Autowired
     private AuthenticationManager authenticationManagerBean;
 
-    private SafeLockerAuthenticationProvider sltAuthenticationProvider;
+    @Autowired
+    private UserService userService;
+
+    private SafeLockerAuthenticationProvider safeLockerAuthenticationProvider;
 
 
     public AuthenticationFilter(AuthenticationManager authenticationManager) {
         this.authenticationManagerBean = authenticationManager;
     }
-    public AuthenticationFilter(SafeLockerAuthenticationProvider sltAuthenticationProvider) {
-        this.sltAuthenticationProvider = sltAuthenticationProvider;
+    public AuthenticationFilter(SafeLockerAuthenticationProvider safeLockerAuthenticationProvider) {
+        this.safeLockerAuthenticationProvider = safeLockerAuthenticationProvider;
     }
 
 
@@ -43,12 +51,20 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
+        Timestamp date = Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
+
+        int randomPIN = (int)(Math.random()*9000)+1000;
+        User user = userService.findByUsername(request.getParameter("username"));
+        user.setOtp(randomPIN);
+        user.setOtpTime(date);
+        user = userService.save(user);
+
         String userName = request.getParameter("username");
         String password = request.getParameter("password");
         log.info("username in  InternalAuthenticationFilter is : {}", userName);
         log.info("password in  InternalAuthenticationFilter is {}  ", password);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userName, password);
-        return sltAuthenticationProvider.authenticate(authenticationToken);
+        return safeLockerAuthenticationProvider.authenticate(authenticationToken);
 
     }
 

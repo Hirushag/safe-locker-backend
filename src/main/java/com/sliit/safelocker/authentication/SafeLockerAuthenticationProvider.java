@@ -26,17 +26,12 @@ public class SafeLockerAuthenticationProvider implements AuthenticationProvider 
         String username = authentication.getPrincipal().toString();
         String password = authentication.getCredentials().toString();
 
-        log.info("username in sltAutentication provider is "+username);
-        log.info("password in sltAutentication provider is "+password);
+        log.info("username in Autentication provider is "+username);
+        log.info("password in Autentication provider is "+password);
         Boolean isOk;
         HttpEntity<AuthRequest> request = new HttpEntity<>(new AuthRequest(username,password));
         try{
 
-//            ResponseEntity<JwtResponse> response =  restTemplate.exchange("http://tomcat.lakmobile.com:8080/cms/authenticate", HttpMethod.POST,request,JwtResponse.class);
-//            ResponseEntity<SltAuthResponse> response =  restTemplate.exchange("https://sltmobitel.mocklab.io/api/User/AuthenticateUser", HttpMethod.POST,request, SltAuthResponse.class);
-
-//             log.info(String.valueOf(response.getBody()));
-//            log.info("response isSuccess "+ response.getBody().getIsSuccess());
             isOk= true; //response.getBody().getIsSuccess();
 
         }catch (Exception e){
