@@ -20,14 +20,4 @@ public class SafelockerApplication {
         SpringApplication.run(SafelockerApplication.class, args);
     }
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurerAdapter() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("api/v1/file-upload").allowedOrigins("http://localhost:9091");
-            }
-        };
-    }
-
 }
