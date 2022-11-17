@@ -7,6 +7,9 @@ import com.sliit.safelocker.repository.RoleRepository;
 import com.sliit.safelocker.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -26,6 +29,13 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+
+    @Autowired
+    private JavaMailSender javaMailSender;
+
+    @Value("${email.username}")
+    private String sendFromEmail;
 
 
     @Override
@@ -99,6 +109,7 @@ public class UserServiceImpl implements UserService {
         int randomPIN = (int)(Math.random()*9000)+1000;
         user.setOtpTime(date);
         user.setOtp(randomPIN);
+        sendEmail(user);
         userRepository.save(user);
     }
 
@@ -111,6 +122,27 @@ public class UserServiceImpl implements UserService {
         }else {
             return null;
         }
+
+    }
+
+
+    public void sendEmail(User user) {
+
+        String name = user.getName();
+        String email = user.getEmail();
+        int otp = user.getOtp();
+
+
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setTo(email);
+        msg.setFrom(sendFromEmail);
+
+        msg.setSubject("Two Factor Authentication");
+        msg.setText( "Dear " + name + System.lineSeparator()+  System.lineSeparator()+   "We are pleased to inform you that your research paper, “ ” has approved for present at the ICAF 2021."
+                + " Please make sure to proceed the otp for the presentation."
+                + " "+ otp + ""
+                + System.lineSeparator()+  System.lineSeparator()+"Thank you !");
+        javaMailSender.send(msg);
 
     }
 
