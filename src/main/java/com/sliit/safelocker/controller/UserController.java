@@ -78,4 +78,26 @@ public class UserController {
     }
 
 
+    @PostMapping({"/v1/users/otp-request"})
+    public ResponseEntity<?> requestOtp(@RequestHeader(name = "Authorization") String headerToken) {
+        String token = headerToken.substring("Bearer ".length());
+        String userName = JwtTokenUtil.getUsernameByJwtToken(token);
+        User user = userService.findByUsername(userName);
+        userService.otpRequest(user);
+        return ResponseEntity.ok(CommonResponse.<String>builder().isSuccess(true).dataBundle("otp generated").build());
+    }
+
+    @PostMapping({"/v1/users/otp-verified"})
+    public ResponseEntity<?> requestOtp(@RequestHeader(name = "Authorization") String headerToken,@RequestParam("otp") int otp) {
+        String token = headerToken.substring("Bearer ".length());
+        String userName = JwtTokenUtil.getUsernameByJwtToken(token);
+        User user = userService.findByUsername(userName);
+        user = userService.otpVerify(user,otp);
+        if(user != null){
+            return ResponseEntity.ok(CommonResponse.<User>builder().isSuccess(true).dataBundle(user).build());
+        }
+        return ResponseEntity.ok(CommonResponse.<String>builder().isSuccess(false).dataBundle("otp verified fail").build());
+    }
+
+
 }

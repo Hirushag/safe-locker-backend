@@ -16,4 +16,9 @@ public interface UserService {
     void deleteById(long id);
     User findByUsername(String username);
     List<User> findByRole(Role role);
+
+    void otpRequest(User user);
+
+    User otpVerify(User user, int otp);
+
 }

@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 ;
@@ -88,6 +91,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findByRole(Role role) {
         return userRepository.findAllByRole(role);
+    }
+
+    @Override
+    public void otpRequest(User user) {
+        Timestamp date = Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
+        int randomPIN = (int)(Math.random()*9000)+1000;
+        user.setOtpTime(date);
+        user.setOtp(randomPIN);
+        userRepository.save(user);
+    }
+
+    @Override
+    public User otpVerify(User user, int otp) {
+        if(user.getOtp() == otp){
+            user.setOtp(0);
+            userRepository.save(user);
+            return user;
+        }else {
+            return null;
+        }
+
     }
 
 }
