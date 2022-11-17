@@ -109,8 +109,8 @@ public class UserServiceImpl implements UserService {
         int randomPIN = (int)(Math.random()*9000)+1000;
         user.setOtpTime(date);
         user.setOtp(randomPIN);
-        sendEmail(user);
         userRepository.save(user);
+        sendEmail(user);
     }
 
     @Override
