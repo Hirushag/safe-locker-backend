@@ -5,17 +5,28 @@ import com.sliit.safelocker.model.Role;
 import com.sliit.safelocker.model.User;
 import com.sliit.safelocker.repository.RoleRepository;
 import com.sliit.safelocker.repository.UserRepository;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 ;
 
@@ -29,6 +40,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private Configuration config;
 
 
     @Autowired
@@ -128,21 +142,37 @@ public class UserServiceImpl implements UserService {
 
     public void sendEmail(User user) {
 
-        String name = user.getName();
-        String email = user.getEmail();
-        int otp = user.getOtp();
+        String otpString = String.valueOf(user.getOtp());
+
+        try {
+
+            MimeMessage message = javaMailSender.createMimeMessage();
 
 
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(email);
-        msg.setFrom(sendFromEmail);
+            Map<String, Object> model = new HashMap<>();
 
-        msg.setSubject("Two Factor Authentication");
-        msg.setText( "Dear " + name + System.lineSeparator()+  System.lineSeparator()+   "We are pleased to inform you that your research paper, “ ” has approved for present at the ICAF 2021."
-                + " Please make sure to proceed the otp for the presentation."
-                + " "+ otp + ""
-                + System.lineSeparator()+  System.lineSeparator()+"Thank you !");
-        javaMailSender.send(msg);
+            model.put("otp", otpString);
+            model.put("username", user.getName());
+
+            // set mediaType
+            MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                    StandardCharsets.UTF_8.name());
+
+
+            Template t = config.getTemplate("email_otp.ftl");
+            String html = FreeMarkerTemplateUtils.processTemplateIntoString(t, model);
+
+            helper.setTo(user.getEmail());
+            helper.setFrom(sendFromEmail);
+            helper.setText(html, true);
+            helper.setSubject("TWO FACTOR AUTHENTICATOR");
+
+            javaMailSender.send(message);
+
+        }catch (MessagingException | IOException | TemplateException e) {
+
+            System.out.println("error " + e);
+        }
 
     }
 
